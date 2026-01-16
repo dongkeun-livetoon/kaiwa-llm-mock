@@ -1,6 +1,12 @@
 import { mockCharacters, mockPromptVersions, mockConversationSessions } from '@/data/mockData';
 import Link from 'next/link';
 
+const characterEmojis: Record<string, string> = {
+  'una-001': '🐰',
+  'sakura-001': '🌸',
+  'kai-001': '🏄',
+};
+
 export default function Dashboard() {
   const activePrompts = mockPromptVersions.filter(p => p.isActive).length;
   const totalSessions = mockConversationSessions.length;
@@ -73,62 +79,72 @@ export default function Dashboard() {
             </Link>
           </div>
           <div className="divide-y divide-slate-100">
-            {mockConversationSessions.slice(0, 4).map((session) => (
-              <div key={session.id} className="px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-sm font-medium shrink-0">
-                      U
+            {mockConversationSessions.slice(0, 4).map((session) => {
+              const character = mockCharacters.find(c => c.id === session.characterId);
+              return (
+                <div key={session.id} className="px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-lg shrink-0">
+                        {characterEmojis[session.characterId] || '👤'}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-slate-800 truncate">{session.firstMessage?.slice(0, 40)}...</p>
+                        <p className="text-sm text-slate-500 mt-0.5">
+                          {character?.displayName} · {new Date(session.startedAt).toLocaleDateString('ja-JP')} · {session.messageCount} messages
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-medium text-slate-800 truncate">{session.firstMessage?.slice(0, 40)}...</p>
-                      <p className="text-sm text-slate-500 mt-0.5">
-                        {new Date(session.startedAt).toLocaleDateString('ja-JP')} · {session.messageCount} messages
-                      </p>
-                    </div>
+                    <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium shrink-0">
+                      {session.promptVersion}
+                    </span>
                   </div>
-                  <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium shrink-0">
-                    {session.promptVersion}
-                  </span>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Prompt Versions */}
+        {/* Active Prompts by Character */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-800">Prompt Versions</h2>
+            <h2 className="text-lg font-semibold text-slate-800">Active Prompts</h2>
             <Link href="/prompts" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
               Manage →
             </Link>
           </div>
           <div className="p-4 space-y-3">
-            {mockPromptVersions.map((prompt) => (
-              <div
-                key={prompt.id}
-                className={`p-4 rounded-xl transition-all cursor-pointer ${
-                  prompt.isActive
-                    ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200'
-                    : 'bg-slate-50 hover:bg-slate-100 border-2 border-transparent'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-slate-800">{prompt.version}</span>
-                  {prompt.isActive && (
-                    <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                      Active
-                    </span>
+            {mockCharacters.map((char) => {
+              const activePrompt = mockPromptVersions.find(p => p.characterId === char.id && p.isActive);
+              const promptCount = mockPromptVersions.filter(p => p.characterId === char.id).length;
+              return (
+                <div
+                  key={char.id}
+                  className="p-4 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100/50 border-2 border-transparent hover:border-indigo-200 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-2xl">{characterEmojis[char.id] || '👤'}</span>
+                    <div className="flex-1">
+                      <span className="font-semibold text-slate-800">{char.displayName}</span>
+                      <span className="text-slate-400 text-sm ml-2">({promptCount} versions)</span>
+                    </div>
+                  </div>
+                  {activePrompt && (
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
+                      <div>
+                        <span className="text-sm text-slate-600">{activePrompt.version}</span>
+                        <span className="text-slate-400 mx-2">·</span>
+                        <span className="text-sm text-slate-500">{activePrompt.description}</span>
+                      </div>
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                        Active
+                      </span>
+                    </div>
                   )}
                 </div>
-                <p className="text-sm text-slate-500">{prompt.description}</p>
-                <p className="text-xs text-slate-400 mt-2">
-                  {new Date(prompt.createdAt).toLocaleDateString('ja-JP')}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
