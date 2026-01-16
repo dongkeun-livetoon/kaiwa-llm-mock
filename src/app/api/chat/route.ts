@@ -49,6 +49,13 @@ async function callCerebras(model: string, messages: ChatMessage[], temperature:
   }
 
   const data = await response.json();
+
+  // Safe access with error handling
+  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    console.error('Cerebras response:', JSON.stringify(data));
+    throw new Error('Invalid response from Cerebras API');
+  }
+
   return data.choices[0].message.content;
 }
 
@@ -103,6 +110,13 @@ async function callGemini(model: string, messages: ChatMessage[], temperature: n
   }
 
   const data = await response.json();
+
+  // Safe access with error handling
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+    console.error('Gemini response:', JSON.stringify(data));
+    throw new Error('Invalid response from Gemini API');
+  }
+
   return data.candidates[0].content.parts[0].text;
 }
 
