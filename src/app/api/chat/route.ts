@@ -18,11 +18,16 @@ interface ChatRequest {
 
 // Cerebras API call
 async function callCerebras(model: string, messages: ChatMessage[], temperature: number, maxTokens: number) {
-  const modelMap: Record<string, string> = {
-    'llama-3.3-70b': 'llama-3.3-70b',
-    'llama-3.1-8b': 'llama3.1-8b',
-    'qwen-3-32b': 'qwen-3-32b',
-  };
+  // Model IDs are passed directly - they match Cerebras API
+  const supportedModels = [
+    'llama-3.3-70b',
+    'llama3.1-8b',
+    'qwen-3-32b',
+    'qwen-3-235b-a22b-instruct-2507',
+    'gpt-oss-120b',
+  ];
+
+  const modelId = supportedModels.includes(model) ? model : 'llama-3.3-70b';
 
   const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
     method: 'POST',
@@ -31,7 +36,7 @@ async function callCerebras(model: string, messages: ChatMessage[], temperature:
       'Authorization': `Bearer ${CEREBRAS_API_KEY}`,
     },
     body: JSON.stringify({
-      model: modelMap[model] || model,
+      model: modelId,
       messages: messages,
       temperature: temperature,
       max_tokens: maxTokens,
@@ -49,11 +54,14 @@ async function callCerebras(model: string, messages: ChatMessage[], temperature:
 
 // Gemini API call
 async function callGemini(model: string, messages: ChatMessage[], temperature: number, maxTokens: number) {
-  const modelMap: Record<string, string> = {
-    'gemini-2.0-flash': 'gemini-2.0-flash',
-    'gemini-1.5-pro': 'gemini-1.5-pro',
-    'gemini-1.5-flash': 'gemini-1.5-flash',
-  };
+  // Gemini 2.5 models (latest)
+  const supportedModels = [
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
+    'gemini-2.5-pro',
+  ];
+
+  const modelId = supportedModels.includes(model) ? model : 'gemini-2.5-flash';
 
   // Convert messages to Gemini format
   const systemMessage = messages.find(m => m.role === 'system');
@@ -79,7 +87,7 @@ async function callGemini(model: string, messages: ChatMessage[], temperature: n
   }
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${modelMap[model] || model}:generateContent?key=${GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${GEMINI_API_KEY}`,
     {
       method: 'POST',
       headers: {
@@ -111,9 +119,12 @@ export async function POST(request: NextRequest) {
     let response: string;
 
     // Determine provider based on model
-    if (model.startsWith('llama') || model.startsWith('qwen')) {
+    const cerebrasModels = ['llama-3.3-70b', 'llama3.1-8b', 'qwen-3-32b', 'qwen-3-235b-a22b-instruct-2507', 'gpt-oss-120b'];
+    const geminiModels = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-pro'];
+
+    if (cerebrasModels.includes(model) || model.startsWith('llama') || model.startsWith('qwen') || model.startsWith('gpt-oss')) {
       response = await callCerebras(model, allMessages, temperature, maxTokens);
-    } else if (model.startsWith('gemini')) {
+    } else if (geminiModels.includes(model) || model.startsWith('gemini')) {
       response = await callGemini(model, allMessages, temperature, maxTokens);
     } else {
       throw new Error(`Unsupported model: ${model}`);

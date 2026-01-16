@@ -18,14 +18,16 @@ interface ChatMessage {
 }
 
 const LLM_MODELS = [
-  // Cerebras (Fast inference)
+  // Cerebras (Fast inference - 2500+ TPS)
   { id: 'llama-3.3-70b', name: 'Llama 3.3 70B', provider: 'Cerebras' },
-  { id: 'llama-3.1-8b', name: 'Llama 3.1 8B', provider: 'Cerebras' },
+  { id: 'llama3.1-8b', name: 'Llama 3.1 8B', provider: 'Cerebras' },
   { id: 'qwen-3-32b', name: 'Qwen 3 32B', provider: 'Cerebras' },
-  // Google
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', provider: 'Google' },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'Google' },
-  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'Google' },
+  { id: 'qwen-3-235b-a22b-instruct-2507', name: 'Qwen 3 235B Instruct', provider: 'Cerebras' },
+  { id: 'gpt-oss-120b', name: 'GPT-OSS 120B', provider: 'Cerebras' },
+  // Google Gemini
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'Google' },
+  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', provider: 'Google' },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'Google' },
 ];
 
 export default function ChatPage() {
